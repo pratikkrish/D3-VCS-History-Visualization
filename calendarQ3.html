@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<head><title>Visualization for Q3</title></head>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+  shape-rendering: crispEdges;
+}
+
+.day {
+  fill: #fff;
+  stroke: #ccc;
+}
+
+.month {
+  fill: none;
+  stroke: #000;
+  stroke-width: 2px;
+}
+
+/* CSS for SVN */
+.RdYlGn .q1{fill:rgb(237,226,255)}
+.RdYlGn .q2{fill:rgb(213,196,243)}
+.RdYlGn .q3{fill:rgb(127,87,196)}
+.RdYlGn .q4{fill:rgb(74,41,138)}
+.RdYlGn .q5{fill:rgb(20,6,46)}
+
+/* CSS for GIT */
+.q1.git{
+    fill:rgb(253,232,232)}
+.q2.git{
+    fill:rgb(245,204,204)}
+.q3.git{
+    fill:rgb(215,106,106) }
+.q4.git{
+    fill:rgb(192,65,65)}
+.q5.git{
+    fill:rgb(92,0,0)}
+
+.legend {
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  width: 200px;
+  height: 200px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.legend {
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  width: 220px;
+  height: 220px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.buttonpos {
+  position: fixed;
+  right: 300px;
+  top: 20px;
+  width: 80px;
+  height: 20px;
+  /* border: 1px solid #ccc;
+  border-radius: 4px; */
+}
+
+.tooltip{
+    position:absolute;
+    z-index:1020;
+    display:block;
+    visibility:visible;
+    padding:5px;
+    font-size:11px;
+    opacity:0;
+    filter:alpha(opacity=0)
+}
+.tooltip.in{
+    opacity:.8;
+    filter:alpha(opacity=80)
+}
+.tooltip.top{
+    margin-top:-2px
+}
+.tooltip.right{
+    margin-left:2px
+}
+.tooltip.bottom{
+    margin-top:2px
+}
+.tooltip.left{
+    margin-left:-2px
+}
+.tooltip.top .tooltip-arrow{
+    bottom:0;
+    left:50%;
+    margin-left:-5px;
+    border-left:5px solid transparent;
+    border-right:5px solid transparent;
+    border-top:5px solid #000
+}
+.tooltip.left .tooltip-arrow{
+    top:50%;
+    right:0;
+    margin-top:-5px;
+    border-top:5px solid transparent;
+    border-bottom:5px solid transparent;
+    border-left:5px solid #000
+}
+.tooltip.bottom .tooltip-arrow{
+    top:0;
+    left:50%;
+    margin-left:-5px;
+    border-left:5px solid transparent;
+    border-right:5px solid transparent;
+    border-bottom:5px solid #000
+}
+.tooltip.right .tooltip-arrow{
+    top:50%;
+    left:0;
+    margin-top:-5px;
+    border-top:5px solid transparent;
+    border-bottom:5px solid transparent;
+    border-right:5px solid #000
+}
+.tooltip-inner{
+    max-width:200px;
+    padding:3px 8px;
+    color:#fff;
+    text-align:center;
+    text-decoration:none;
+    background-color:#000;
+    -webkit-border-radius:4px;
+    -moz-border-radius:4px;
+    border-radius:4px
+}
+.tooltip-arrow{
+    position:absolute;
+    width:0;
+    height:0
+}
+
+</style>
+<body>
+  <script src="jquery-min.js"></script>
+  <script src="d3.js"></script>
+  <script src="underscore.js"></script>
+  <script src="bootstrap.js"></script>
+<script type="text/javascript">
+/* Legend border appended to body */
+  $("body").append($("<div>").addClass('legend'));
+</script>
+<!-- Div for legends -->
+<div id="ratio" style="position:fixed;right:10px;top:18px;width:180px;height:220px;"><p>Ratio of LOC and SLOC</p></div>
+
+<div id="svn" style="position:fixed;right:170px;top:40px;width:20px;height:20px;"><p>SVN</p></div>
+
+<div class="triggertooltip" id="label1" title="The ratio is between 1 and 1.5" style="position:fixed;right:170px;top:70px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(237,226,255)"></div>
+ 
+<div class="triggertooltip" id="label2" title="The ratio is between 1.6 and 2.0" style="position:fixed;right:170px;top:100px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(213,196,243)"></div>
+  
+<div class="triggertooltip" id="label4" title="The ratio is between 2.1 and 10.0" style="position:fixed;right:170px;top:130px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(127,87,196)"></div>
+ 
+<div class="triggertooltip" id="label5" title="The ratio is greater than 10.0" style="position:fixed;right:170px;top:160px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(74,41,138)"></div>
+ 
+<div class="triggertooltip" id="label6" title="SLOC is 0" style="position:fixed;right:170px;top:190px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(20,6,46)"></div>
+ 
+ 
+<div id="git" style="position:fixed;right:80px;top:40px;width:20px;height:20px;"><p>GIT</p></div>
+ 
+<div class="triggertooltip" id="label7" title="The ratio is between 1 and 1.5" style="position:fixed;right:80px;top:70px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(253,232,232)"></div>
+ 
+<div class="triggertooltip" id="label8" title="The ratio is between 1.6 and 2.0" style="position:fixed;right:80px;top:100px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(245,204,204)"></div>
+ 
+<div class="triggertooltip" id="label10" title="The ratio is between 2.1 and 10.0" style="position:fixed;right:80px;top:130px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(215,106,106)"></div>
+ 
+<div class="triggertooltip" id="label11" title="The ratio is greater than 10.0" style="position:fixed;right:80px;top:160px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(192,65,65)"></div>
+
+<div class="triggertooltip" id="label13" title="SLOC is 0" style="position:fixed;right:80px;top:190px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(92,0,0)"></div>
+
+<button type="button" id="backbutton" class="buttonpos">Go Back</button>
+
+<script>
+/* Trigger for tooltip activation */
+$(".triggertooltip").tooltip();
+
+$("#backbutton").click(function(){
+	 history.go(-1);return true;
+});
+ 
+sumloc={};
+sumsloc={};
+
+var width = 960,
+    height = 136,
+    cellSize = 17; // cell size
+
+var day = d3.time.format("%w"),
+    week = d3.time.format("%U"),
+    percent = d3.format(".1%"),
+    format = d3.time.format("%Y-%m-%d");
+//calculate the sum of LOC for each date
+d3.csv("JDTUI.csv", function(error, data) {
+	data.forEach(function(d) {
+		if(!sumloc[d.Date1])
+			sumloc[d.Date1]=0;
+		var temp=parseInt(sumloc[d.Date1]);
+		sumloc[d.Date1]=temp+parseInt(d.LOC);
+		return sumloc[d.Date1];
+	})
+	 
+});
+//calculate the sum of SLOC for each date
+d3.csv("JDTUI.csv", function(error, data) {
+	data.forEach(function(d) {
+		if(!sumsloc[d.Date1])
+			sumsloc[d.Date1]=0;
+		var temp=parseInt(sumsloc[d.Date1]);
+		sumsloc[d.Date1]=temp+parseInt(d.SLOC);
+		return sumsloc[d.Date1];
+	})
+	 
+});
+
+d3.csv("JDTUI.csv", function(error, csv) {
+	/* To get separate data for GIT and SVN */
+	var data = _.groupBy(csv, "SCM");
+    window.dataSVN = d3.nest()
+    .key(function(d) {
+      return d.Date1															//setting date as the key of the object
+    })
+    .rollup(function(d) {
+      return d.length;															
+    })
+    .map(data.SVN);
+
+    window.dataGIT = d3.nest()
+    .key(function(d) {
+      return d.Date1															//setting date as the key of the object
+    })
+    .rollup(function(d) {
+      return d.length;
+    })
+    .map(data.GIT);
+    
+    var month_name = d3.time.format("%B");
+
+    var svg = d3.select("body").selectAll("svg")
+    .data(d3.range(2001, 2014))
+    .enter().append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("class", "RdYlGn")
+    .append("g")
+    .attr("transform", "translate(" + ((width - cellSize * 53) / 2) + "," + (height - cellSize * 7 - 1) + ")");
+    
+    svg.append("text")
+        .attr("transform", "translate(-6," + cellSize * 3.5 + ")rotate(-90)")
+        .style("text-anchor", "middle")
+        .text(function(d) { return d; });
+    
+    var rect = svg.selectAll(".day")
+    .data(function(d) { return d3.time.days(new Date(d, 0, 1), new Date(d + 1, 0, 1)); })
+    .enter().append("rect")
+    .attr("class", "day")
+    .attr("width", cellSize)
+    .attr("height", cellSize)
+    .attr("x", function(d) { return week(d) * cellSize; })
+    .attr("y", function(d) { return day(d) * cellSize; })
+    .datum(format);
+    
+    rect.append("title")
+    .text(function(d) { return d; });
+    
+    svg.selectAll(".month")
+    .data(function(d) { return d3.time.months(new Date(d, 0, 1), new Date(d + 1, 0, 1)); })
+    .enter().append("path")
+    .attr("class", "month")
+    .attr("d", monthPath)
+    .attr("x", function(d) { return week(d) * cellSize; })
+    .attr("y", 8 * cellSize)
+    .text(month_name);
+    
+    setTimeout(function(){
+		colorMap("SVN", rect);	//for coloring all the rect for SVN
+    	colorMap("GIT", rect);	//for coloring all the rect for GIT
+    }, 2000);
+});    
+//for mapping VCS type to color  
+var colorMap = function(repo, rect) {
+	var data = (repo == "GIT")?window.dataGIT:window.dataSVN;
+	var className = (repo == "GIT")? "git" : "";		//for assigning the appropriate CSS
+	    
+	rect.filter(function(d) {
+		return (d in data);								//checks each date in the data for filering
+	})
+	.attr("data-scm", repo)
+	.attr("class", function(d) {
+    
+	var loc = sumloc[d];
+	var sloc = sumsloc[d];
+   	var num = (loc/sloc).toFixed(1);
+   	var numP = parseFloat(num, 1);						//string to float
+   	
+   	if(sloc===0) {
+		return className + " day q5";
+	}
+   	else if(numP>=1.0 && numP<=1.5)
+		return className + " day q1";
+	else if(numP>=1.6 && numP<=2.0)
+		return className + " day q2";
+	else if(numP>=2.1 && numP<=10.0)
+		return className + " day q3";
+	else if(numP>10.0 && isFinite(num))
+		return className + " day q4";
+	})
+	.select("title")
+	.text(function(d) { 
+		var loc = sumloc[d];
+		var sloc = sumsloc[d];
+		return (d + " : LOC = " + loc + " , SLOC = "+sloc+" , Ratio = "+(Math.round((loc/sloc) * 10) / 10));  }); 		//printing data for the tooltip on each date
+	  
+};
+//for setting the month path
+function monthPath(t0) {
+  var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
+      d0 = +day(t0), w0 = +week(t0),
+      d1 = +day(t1), w1 = +week(t1);
+  return "M" + (w0 + 1) * cellSize + "," + d0 * cellSize
+      + "H" + w0 * cellSize + "V" + 7 * cellSize
+      + "H" + w1 * cellSize + "V" + (d1 + 1) * cellSize
+      + "H" + (w1 + 1) * cellSize + "V" + 0
+      + "H" + (w0 + 1) * cellSize + "Z";
+}
+
+d3.select(self.frameElement).style("height", "2910px");
+
+</script>

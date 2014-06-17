@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<head><title>Visualization for Q2</title></head>
+<meta charset="utf-8">
+
+<style>
+  body {
+    font: 10px sans-serif;
+    shape-rendering: crispEdges;
+  }
+  .day {
+    fill: #fff;
+    stroke: #ccc;
+  }
+  .month {
+    fill: none;
+    stroke: #000;
+    stroke-width: 2px;
+  }
+
+/* CSS for SVN */
+   
+.RdYlGn .q20{
+    fill:rgb(213,196,243)}
+.RdYlGn .q30{
+    fill:rgb(172,143,223)}
+.RdYlGn .q40{
+    fill:rgb(129,94,189)}
+.RdYlGn .q50{
+    fill:rgb(88,49,156)}
+.RdYlGn .q60{
+    fill:rgb(39,0,105)}
+.RdYlGn .q10{
+    fill:rgb(228,211,253)}
+    
+/* CSS for GIT */
+  
+.q20.git{
+    fill:rgb(245,204,204)}
+.q30.git{
+    fill:rgb(230,146,146) }
+.q40.git{
+    fill:rgb(215,106,106) }
+.q50.git{
+    fill:rgb(192,65,65)}
+.q60.git{
+    fill:rgb(164,15,15)}
+.q10.git{
+    fill:rgb(253,232,232)} 
+    
+.legend {
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  width: 220px;
+  height: 250px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.buttonpos {
+  position: fixed;
+  right: 300px;
+  top: 20px;
+  width: 80px;
+  height: 20px;
+  /* border: 1px solid #ccc;
+  border-radius: 4px; */
+}
+	
+.tooltip{
+    position:absolute;
+    z-index:1020;
+    display:block;
+    visibility:visible;
+    padding:5px;
+    font-size:11px;
+    opacity:0;
+    filter:alpha(opacity=0)
+}
+.tooltip.in{
+    opacity:.8;
+    filter:alpha(opacity=80)
+}
+.tooltip.top{
+    margin-top:-2px
+}
+.tooltip.right{
+    margin-left:2px
+}
+.tooltip.bottom{
+    margin-top:2px
+}
+.tooltip.left{
+    margin-left:-2px
+}
+.tooltip.top .tooltip-arrow{
+    bottom:0;
+    left:50%;
+    margin-left:-5px;
+    border-left:5px solid transparent;
+    border-right:5px solid transparent;
+    border-top:5px solid #000
+}
+.tooltip.left .tooltip-arrow{
+    top:50%;
+    right:0;
+    margin-top:-5px;
+    border-top:5px solid transparent;
+    border-bottom:5px solid transparent;
+    border-left:5px solid #000
+}
+.tooltip.bottom .tooltip-arrow{
+    top:0;
+    left:50%;
+    margin-left:-5px;
+    border-left:5px solid transparent;
+    border-right:5px solid transparent;
+    border-bottom:5px solid #000
+}
+.tooltip.right .tooltip-arrow{
+    top:50%;
+    left:0;
+    margin-top:-5px;
+    border-top:5px solid transparent;
+    border-bottom:5px solid transparent;
+    border-right:5px solid #000
+}
+.tooltip-inner{
+    max-width:200px;
+    padding:3px 8px;
+    color:#fff;
+    text-align:center;
+    text-decoration:none;
+    background-color:#000;
+    -webkit-border-radius:4px;
+    -moz-border-radius:4px;
+    border-radius:4px
+}
+.tooltip-arrow{
+    position:absolute;
+    width:0;
+    height:0
+}
+
+</style>
+<body>
+  <script src="jquery-min.js"></script>
+  <script src="d3.js"></script>
+  <script src="underscore.js"></script>
+  <script src="bootstrap.js"></script>
+
+<script type="text/javascript">
+/* Legend border appended to body */
+  $("body").append($("<div>").addClass('legend'));
+</script>
+
+<!-- Div for legends -->
+<div id="commits" style="position:fixed;right:5px;top:18px;width:180px;height:220px;"><p>Number of commits</p></div>
+
+<div id="svn" style="position:fixed;right:170px;top:40px;width:20px;height:20px;"><p>SVN</p></div>
+
+ <div class="triggertooltip" id="label1" title="The number of commits is between 1 and 10" style="position:fixed;right:170px;top:70px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(237,226,255)"></div>
+ 
+ <div class="triggertooltip" id="label2" title="The number of commits is between 11 and 20" style="position:fixed;right:170px;top:100px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(213,196,243)"></div>
+ 
+ <div class="triggertooltip" id="label3" title="The number of commits is between 21 and 30" style="position:fixed;right:170px;top:130px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(172,143,223)"></div>
+ 
+ <div class="triggertooltip" id="label4" title="The number of commits is between 31 and 40" style="position:fixed;right:170px;top:160px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(129,94,189)"></div>
+ 
+ <div class="triggertooltip" id="label5" title="The number of commits is between 41 and 50" style="position:fixed;right:170px;top:190px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(88,49,156)"></div>
+ 
+ <div class="triggertooltip" id="label6" title="The number of commits is greater than 50" style="position:fixed;right:170px;top:220px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(39,0,105)"></div>
+ 
+ 
+ <div id="git" style="position:fixed;right:80px;top:40px;width:20px;height:20px;"><p>GIT</p></div>
+
+ <div class="triggertooltip" id="label7" title="The number of commits is between 1 and 10" style="position:fixed;right:80px;top:70px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(253,232,232)"></div>
+ 
+ <div class="triggertooltip" id="label8" title="The number of commits is between 11 and 20" style="position:fixed;right:80px;top:100px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(245,204,204)"></div>
+ 
+ <div class="triggertooltip" id="label9" title="The number of commits is between 21 and 30" style="position:fixed;right:80px;top:130px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(230,146,146)"></div>
+ 
+ <div class="triggertooltip" id="label10" title="The number of commits is between 31 and 40" style="position:fixed;right:80px;top:160px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(215,106,106)"></div>
+ 
+ <div class="triggertooltip" id="label11" title="The number of commits is between 41 and 50" style="position:fixed;right:80px;top:190px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(192,65,65)"></div>
+ 
+ <div class="triggertooltip" id="label12" title="The number of commits is greater than 50" style="position:fixed;right:80px;top:220px;border:1px solid #ccc;border-radius:2px;width:20px;height:20px;background-color:rgb(164,15,15)"></div>
+ <button type="button" id="backbutton" class="buttonpos">Go Back</button>
+ 
+ <script>
+ /* Trigger for tooltip activation */
+ $(".triggertooltip").tooltip();
+ 
+ $("#backbutton").click(function(){
+	 history.go(-1);return true;
+});
+
+var width = 960,
+	height = 136,
+	cellSize = 17;
+    
+var day = d3.time.format("%w"),
+	week = d3.time.format("%U"),
+	percent = d3.format(".1%"),
+	format = d3.time.format("%Y-%m-%d");
+    
+d3.csv("JDTUI.csv", function(error, csv) {
+	/* To get separate data for GIT and SVN */
+	var data1 = _.groupBy(csv, "SCM");
+	window.dataSVN = d3.nest()
+	.key(function(d) {
+		return d.Date1															//setting date as the key of the object
+	})
+	.rollup(function(d) {
+		return d.length;														//sum of the number of commits for each date in SVN
+	})
+	.map(data1.SVN);
+
+	window.dataGIT = d3.nest()
+	.key(function(d) {
+		return d.Date1															//setting date as the key of the object
+	})
+	.rollup(function(d) {
+		return d.length;														//sum of the number of commits for each date in GIT
+	})
+	.map(data1.GIT);
+
+	var month_name = d3.time.format("%B");
+      
+	var svg = d3.select("body").selectAll("svg")
+	.data(d3.range(2001, 2014))
+	.enter().append("svg")
+	.attr("width", width)
+	.attr("height", height)
+	.attr("class", "RdYlGn")
+	.append("g")
+	.attr("transform", "translate(" + ((width - cellSize * 53) / 2) + "," + (height - cellSize * 7 - 1) + ")");
+      
+	svg.append("text")
+	.attr("transform", "translate(-6," + cellSize * 3.5 + ")rotate(-90)")
+	.style("text-anchor", "middle")
+	.text(function(d) {
+		return d;
+	});
+        
+	var rect = svg.selectAll(".day")
+	.data(function(d) {
+		return d3.time.days(new Date(d, 0, 1), new Date(d + 1, 0, 1));
+	})
+	.enter().append("rect")
+	.attr("class", "day")
+	.attr("width", cellSize)
+	.attr("height", cellSize)
+	.attr("x", function(d) {
+		return week(d) * cellSize;
+	})
+	.attr("y", function(d) {
+		return day(d) * cellSize;
+	})
+	.datum(format);
+        
+	rect.append("title")
+	.text(function(d) {
+		return d;
+	});
+        
+	svg.selectAll(".month")
+	.data(function(d) {
+		return d3.time.months(new Date(d, 0, 1), new Date(d + 1, 0, 1));
+	})
+	.enter().append("path")
+	.attr("class", "month")
+	.attr("d", monthPath)
+	.append("text")
+	.attr("x", function(d) { return week(d) * cellSize; })
+	.attr("y", 8 * cellSize)
+	.text(month_name);
+
+	setTimeout(function(){
+		colorMap("GIT", rect);	//for coloring all the rect for SVN
+		colorMap("SVN", rect);	//for coloring all the rect for GIT
+	}, 2000);
+});
+//for mapping VCS type to color
+var colorMap = function(repo, rect) {
+	var data = (repo == "GIT")?window.dataGIT:window.dataSVN;
+	var className = (repo == "GIT")? "git" : "";		//for assigning the appropriate CSS
+	
+	rect.filter(function(d) {
+		return (d in data);								//checks each date in the data for filering
+	})
+	.attr("data-scm", repo)
+	.attr("class", function(d) {
+		var num = parseFloat(data[d]);					//string to float
+        
+        if(num>=1 && num<=10)
+			return className + " day q10";
+        else if(num>=11 && num<=20)
+			return className + " day q20";
+        else if(num>=21 && num<=30)
+       	 	return className + " day q30";
+        else if(num>=31 && num<=40)
+       	 	return className + " day q40";
+        else if(num>=41 && num<=50)
+       	 	return className + " day q50";
+        else if(num>=51)
+       	 	return className + " day q60";
+    })
+	.select("title").text(function(d) {
+		return (d + " : No of commits = " + data[d]); 		//printing data for the tooltip on each date
+	});
+};
+//for setting the month path
+function monthPath(t0) {
+      var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
+          d0 = +day(t0), w0 = +week(t0),
+          d1 = +day(t1), w1 = +week(t1);
+      return "M" + (w0 + 1) * cellSize + "," + d0 * cellSize
+      + "H" + w0 * cellSize + "V" + 7 * cellSize
+      + "H" + w1 * cellSize + "V" + (d1 + 1) * cellSize
+      + "H" + (w1 + 1) * cellSize + "V" + 0
+      + "H" + (w0 + 1) * cellSize + "Z";
+    }
+    d3.select(self.frameElement).style("height", "2910px");
+  </script>
